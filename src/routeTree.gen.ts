@@ -9,16 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileIdRouteImport } from './routes/profile.$id'
+import { Route as AuthenticatedTeacherRouteImport } from './routes/_authenticated/teacher'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedMistakesRouteImport } from './routes/_authenticated/mistakes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCoursesRouteImport } from './routes/_authenticated/courses'
+import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedTestsIdRouteImport } from './routes/_authenticated/tests.$id'
 import { Route as AuthenticatedLessonsIdRouteImport } from './routes/_authenticated/lessons.$id'
 import { Route as AuthenticatedCoursesIdRouteImport } from './routes/_authenticated/courses.$id'
 
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -33,6 +44,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileIdRoute = ProfileIdRouteImport.update({
+  id: '/profile/$id',
+  path: '/profile/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTeacherRoute = AuthenticatedTeacherRouteImport.update({
+  id: '/teacher',
+  path: '/teacher',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMistakesRoute = AuthenticatedMistakesRouteImport.update({
   id: '/mistakes',
   path: '/mistakes',
@@ -46,6 +72,16 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedCoursesRoute = AuthenticatedCoursesRouteImport.update({
   id: '/courses',
   path: '/courses',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedTestsIdRoute = AuthenticatedTestsIdRouteImport.update({
@@ -67,9 +103,15 @@ const AuthenticatedCoursesIdRoute = AuthenticatedCoursesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
   '/courses': typeof AuthenticatedCoursesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/mistakes': typeof AuthenticatedMistakesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/teacher': typeof AuthenticatedTeacherRoute
+  '/profile/$id': typeof ProfileIdRoute
   '/courses/$id': typeof AuthenticatedCoursesIdRoute
   '/lessons/$id': typeof AuthenticatedLessonsIdRoute
   '/tests/$id': typeof AuthenticatedTestsIdRoute
@@ -77,9 +119,15 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
   '/courses': typeof AuthenticatedCoursesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/mistakes': typeof AuthenticatedMistakesRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/teacher': typeof AuthenticatedTeacherRoute
+  '/profile/$id': typeof ProfileIdRoute
   '/courses/$id': typeof AuthenticatedCoursesIdRoute
   '/lessons/$id': typeof AuthenticatedLessonsIdRoute
   '/tests/$id': typeof AuthenticatedTestsIdRoute
@@ -89,9 +137,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/courses': typeof AuthenticatedCoursesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/mistakes': typeof AuthenticatedMistakesRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/teacher': typeof AuthenticatedTeacherRoute
+  '/profile/$id': typeof ProfileIdRoute
   '/_authenticated/courses/$id': typeof AuthenticatedCoursesIdRoute
   '/_authenticated/lessons/$id': typeof AuthenticatedLessonsIdRoute
   '/_authenticated/tests/$id': typeof AuthenticatedTestsIdRoute
@@ -101,9 +155,15 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/leaderboard'
+    | '/admin'
+    | '/assistant'
     | '/courses'
     | '/dashboard'
     | '/mistakes'
+    | '/settings'
+    | '/teacher'
+    | '/profile/$id'
     | '/courses/$id'
     | '/lessons/$id'
     | '/tests/$id'
@@ -111,9 +171,15 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/leaderboard'
+    | '/admin'
+    | '/assistant'
     | '/courses'
     | '/dashboard'
     | '/mistakes'
+    | '/settings'
+    | '/teacher'
+    | '/profile/$id'
     | '/courses/$id'
     | '/lessons/$id'
     | '/tests/$id'
@@ -122,9 +188,15 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/leaderboard'
+    | '/_authenticated/admin'
+    | '/_authenticated/assistant'
     | '/_authenticated/courses'
     | '/_authenticated/dashboard'
     | '/_authenticated/mistakes'
+    | '/_authenticated/settings'
+    | '/_authenticated/teacher'
+    | '/profile/$id'
     | '/_authenticated/courses/$id'
     | '/_authenticated/lessons/$id'
     | '/_authenticated/tests/$id'
@@ -134,10 +206,19 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  ProfileIdRoute: typeof ProfileIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -159,6 +240,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile/$id': {
+      id: '/profile/$id'
+      path: '/profile/$id'
+      fullPath: '/profile/$id'
+      preLoaderRoute: typeof ProfileIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/teacher': {
+      id: '/_authenticated/teacher'
+      path: '/teacher'
+      fullPath: '/teacher'
+      preLoaderRoute: typeof AuthenticatedTeacherRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/mistakes': {
       id: '/_authenticated/mistakes'
       path: '/mistakes'
@@ -178,6 +280,20 @@ declare module '@tanstack/react-router' {
       path: '/courses'
       fullPath: '/courses'
       preLoaderRoute: typeof AuthenticatedCoursesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/assistant': {
+      id: '/_authenticated/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AuthenticatedAssistantRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/tests/$id': {
@@ -216,17 +332,25 @@ const AuthenticatedCoursesRouteWithChildren =
   AuthenticatedCoursesRoute._addFileChildren(AuthenticatedCoursesRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedCoursesRoute: typeof AuthenticatedCoursesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMistakesRoute: typeof AuthenticatedMistakesRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTeacherRoute: typeof AuthenticatedTeacherRoute
   AuthenticatedLessonsIdRoute: typeof AuthenticatedLessonsIdRoute
   AuthenticatedTestsIdRoute: typeof AuthenticatedTestsIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedCoursesRoute: AuthenticatedCoursesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMistakesRoute: AuthenticatedMistakesRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTeacherRoute: AuthenticatedTeacherRoute,
   AuthenticatedLessonsIdRoute: AuthenticatedLessonsIdRoute,
   AuthenticatedTestsIdRoute: AuthenticatedTestsIdRoute,
 }
@@ -239,6 +363,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  ProfileIdRoute: ProfileIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
