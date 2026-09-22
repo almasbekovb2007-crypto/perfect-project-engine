@@ -1,6 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { GraduationCap, LogOut, Menu } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -13,12 +15,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 
-const NAV = [
+const STUDENT_NAV = [
   { to: "/dashboard", label: "Главная" },
   { to: "/courses", label: "Курсы" },
   { to: "/mistakes", label: "Мои ошибки" },
   { to: "/assistant", label: "ИИ-помощник" },
   { to: "/leaderboard", label: "Рейтинг" },
+];
+
+const TEACHER_NAV = [
+  ...STUDENT_NAV,
+  { to: "/teacher", label: "Кабинет преподавателя" },
+];
+
+const ADMIN_NAV = [
+  { to: "/leaderboard", label: "Рейтинг" },
+  { to: "/teacher", label: "Преподавателю" },
+  { to: "/admin", label: "Админ" },
+  { to: "/admin/teacher-applications", label: "Заявки преподавателей" },
 ];
 
 export function AppNav() {
@@ -27,10 +41,27 @@ export function AppNav() {
   const [open, setOpen] = useState(false);
   const initial = (user?.email ?? "?").charAt(0).toUpperCase();
 
+  const { data: teacherApplication } = useQuery({
+    queryKey: ["nav-teacher-application", user?.id],
+    enabled: !!user && !roles.includes("admin"),
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("teacher_applications")
+        .select("status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { status: string } | null;
+    },
+  });
+
+  const effectiveNavItems = roles.includes("admin") ? ADMIN_NAV : roles.includes("teacher") || teacherApplication ? TEACHER_NAV : STUDENT_NAV;
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
+        <Link to={roles.includes("admin") ? "/leaderboard" : "/dashboard"} className="flex items-center gap-2 font-semibold">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-soft">
             <GraduationCap className="h-5 w-5" />
           </span>
@@ -38,7 +69,7 @@ export function AppNav() {
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-          {NAV.map((n) => (
+          {effectiveNavItems.map((n) => (
             <Link
               key={n.to}
               to={n.to}
@@ -48,24 +79,6 @@ export function AppNav() {
               {n.label}
             </Link>
           ))}
-          {(roles.includes("teacher") || roles.includes("admin")) && (
-            <Link
-              to="/teacher"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground [&.active]:bg-secondary [&.active]:text-foreground"
-              activeProps={{ className: "active" }}
-            >
-              Преподавателю
-            </Link>
-          )}
-          {roles.includes("admin") && (
-            <Link
-              to="/admin"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground [&.active]:bg-secondary [&.active]:text-foreground"
-              activeProps={{ className: "active" }}
-            >
-              Админ
-            </Link>
-          )}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -113,7 +126,7 @@ export function AppNav() {
       </div>
       {open && (
         <nav className="flex flex-col gap-1 border-t border-border/60 bg-background px-4 py-3 md:hidden">
-          {NAV.map((n) => (
+          {effectiveNavItems.map((n) => (
             <Link
               key={n.to}
               to={n.to}
@@ -124,16 +137,6 @@ export function AppNav() {
               {n.label}
             </Link>
           ))}
-          {(roles.includes("teacher") || roles.includes("admin")) && (
-            <Link to="/teacher" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary">
-              Преподавателю
-            </Link>
-          )}
-          {roles.includes("admin") && (
-            <Link to="/admin" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary">
-              Админ
-            </Link>
-          )}
         </nav>
       )}
     </header>

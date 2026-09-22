@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/tests/$id")({
 
 function TestPage() {
   const { id } = useParams({ from: "/_authenticated/tests/$id" });
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);

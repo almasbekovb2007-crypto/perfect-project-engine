@@ -17,12 +17,25 @@ export const Route = createFileRoute("/leaderboard")({
 function LeaderboardPage() {
   const { user } = useAuth();
   const [q, setQ] = useState("");
-  const { data } = useQuery({
+  const { data: leaderboard } = useQuery({
     queryKey: ["leaderboard"],
     queryFn: async () => (await supabase.from("leaderboard").select("*").limit(200)).data ?? [],
   });
 
-  const filtered = (data ?? []).filter((r) => !q || (r.full_name ?? "").toLowerCase().includes(q.toLowerCase()));
+  const { data: userRoles } = useQuery({
+    queryKey: ["user_roles"],
+    queryFn: async () => (await supabase.from("user_roles").select("user_id, role")).data ?? [],
+  });
+
+  const teacherAndAdminIds = new Set(
+    (userRoles ?? [])
+      .filter((ur) => ur.role === "teacher" || ur.role === "admin")
+      .map((ur) => ur.user_id)
+  );
+
+  const filtered = (leaderboard ?? [])
+    .filter((r) => !teacherAndAdminIds.has(r.user_id as string))
+    .filter((r) => !q || (r.full_name ?? "").toLowerCase().includes(q.toLowerCase()));
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,11 +64,11 @@ function LeaderboardPage() {
                   <Avatar><AvatarFallback className="bg-primary text-primary-foreground">{(r.full_name ?? "?").charAt(0).toUpperCase()}</AvatarFallback></Avatar>
                   <div className="flex-1">
                     <div className="font-semibold">{r.full_name ?? "Без имени"}</div>
-                    <div className="text-xs text-muted-foreground">{r.attempts_count} попыток · точность {r.accuracy}%</div>
+                    <div className="text-xs text-muted-foreground">{r.attempts_count ?? 0} попыток · точность {r.accuracy ?? 0}%</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-bold">{r.total_score}</div>
-                    <div className="text-xs text-muted-foreground">из {r.total_questions}</div>
+                    <div className="text-xl font-bold">{r.total_score ?? 0}</div>
+                    <div className="text-xs text-muted-foreground">из {r.total_questions ?? 0}</div>
                   </div>
                 </div>
               </Link>

@@ -1,6 +1,7 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +14,10 @@ export const Route = createFileRoute("/_authenticated/courses/$id")({
 
 function CourseDetail() {
   const { id } = useParams({ from: "/_authenticated/courses/$id" });
+  const navigate = useNavigate();
+  const { user, roles } = useAuth();
 
-  const { data } = useQuery({
+  const { data, error } = useQuery({
     queryKey: ["course", id],
     queryFn: async () => {
       const [course, lessons, tests] = await Promise.all([
@@ -22,6 +25,9 @@ function CourseDetail() {
         supabase.from("lessons").select("id, title, order_index").eq("course_id", id).order("order_index"),
         supabase.from("tests").select("id, title, description").eq("course_id", id),
       ]);
+      if (course.error) throw course.error;
+      if (lessons.error) throw lessons.error;
+      if (tests.error) throw tests.error;
       return {
         course: course.data,
         lessons: lessons.data ?? [],
@@ -29,6 +35,14 @@ function CourseDetail() {
       };
     },
   });
+
+  if (error) {
+    return (
+      <div className="py-12 text-center text-muted-foreground">
+        <p>Ошибка загрузки курса: {error.message}</p>
+      </div>
+    );
+  }
 
   if (!data?.course) return <div className="py-12 text-center text-muted-foreground">Курс не найден.</div>;
 
@@ -53,7 +67,12 @@ function CourseDetail() {
           <CardContent className="space-y-2">
             {data.lessons.length === 0 && <p className="text-sm text-muted-foreground">Уроки появятся скоро.</p>}
             {data.lessons.map((l, i) => (
-              <Link key={l.id} to="/lessons/$id" params={{ id: l.id }}>
+              <button
+                key={l.id}
+                type="button"
+                className="w-full text-left"
+                onClick={() => navigate({ to: "/lessons/$id", params: { id: l.id } })}
+              >
                 <div className="group flex items-center justify-between rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-sm font-semibold text-primary">{i + 1}</div>
@@ -61,7 +80,7 @@ function CourseDetail() {
                   </div>
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </div>
-              </Link>
+              </button>
             ))}
           </CardContent>
         </Card>
@@ -73,13 +92,18 @@ function CourseDetail() {
           <CardContent className="space-y-2">
             {data.tests.length === 0 && <p className="text-sm text-muted-foreground">Тестов пока нет.</p>}
             {data.tests.map((t) => (
-              <Link key={t.id} to="/tests/$id" params={{ id: t.id }}>
+              <button
+                key={t.id}
+                type="button"
+                className="w-full text-left"
+                onClick={() => navigate({ to: "/tests/$id", params: { id: t.id } })}
+              >
                 <div className="rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary">
                   <div className="font-medium">{t.title}</div>
                   {t.description && <div className="mt-1 text-xs text-muted-foreground line-clamp-2">{t.description}</div>}
                   <Button variant="link" className="mt-2 h-auto p-0 text-primary">Пройти тест →</Button>
                 </div>
-              </Link>
+              </button>
             ))}
           </CardContent>
         </Card>

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, ArrowLeft } from "lucide-react";
+import { Check, ArrowLeft, Download } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/lessons/$id")({
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/lessons/$id")({
 
 function LessonPage() {
   const { id } = useParams({ from: "/_authenticated/lessons/$id" });
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const qc = useQueryClient();
 
   const { data } = useQuery({
@@ -30,6 +30,10 @@ function LessonPage() {
     },
   });
 
+  if (!data?.lesson) return <div className="py-12 text-center text-muted-foreground">Урок не найден.</div>;
+
+  const course = data.lesson.courses as { id: string; title: string } | null;
+
   const markDone = async () => {
     if (!user) return;
     const { error } = await supabase.from("lesson_progress").insert({ user_id: user.id, lesson_id: id });
@@ -41,9 +45,36 @@ function LessonPage() {
     qc.invalidateQueries({ queryKey: ["lesson", id] });
   };
 
-  if (!data?.lesson) return <div className="py-12 text-center text-muted-foreground">Урок не найден.</div>;
+  const downloadFile = () => {
+    if (!data?.lesson) return;
+    const content = data.lesson.content;
+    if (!content) return;
 
-  const course = data.lesson.courses as { id: string; title: string } | null;
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed.dataUrl && parsed.fileName) {
+        const link = document.createElement('a');
+        link.href = parsed.dataUrl;
+        link.download = parsed.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Файл скачан");
+      }
+    } catch (e) {
+      toast.error("Не удалось скачать файл");
+    }
+  };
+
+  const isFileContent = () => {
+    if (!data?.lesson) return false;
+    try {
+      const parsed = JSON.parse(data.lesson.content);
+      return parsed.dataUrl && parsed.fileName;
+    } catch {
+      return false;
+    }
+  };
 
   return (
     <article className="mx-auto max-w-3xl space-y-6">
@@ -56,7 +87,17 @@ function LessonPage() {
 
       <Card>
         <CardContent className="prose prose-slate dark:prose-invert max-w-none whitespace-pre-wrap pt-6 text-[15px] leading-relaxed">
-          {data.lesson.content || "Содержимое урока скоро будет добавлено."}
+          {isFileContent() ? (
+            <div className="space-y-4">
+              <p>Урок содержит файл для скачивания.</p>
+              <Button onClick={downloadFile} size="lg">
+                <Download className="mr-2 h-4 w-4" />
+                Скачать файл
+              </Button>
+            </div>
+          ) : (
+            data.lesson.content || "Содержимое урока скоро будет добавлено."
+          )}
         </CardContent>
       </Card>
 

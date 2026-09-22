@@ -24,6 +24,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTestsIdRouteImport } from './routes/_authenticated/tests.$id'
 import { Route as AuthenticatedLessonsIdRouteImport } from './routes/_authenticated/lessons.$id'
 import { Route as AuthenticatedCoursesIdRouteImport } from './routes/_authenticated/courses.$id'
+import { Route as AuthenticatedAdminTeacherApplicationsRouteImport } from './routes/_authenticated/admin.teacher-applications'
 
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
@@ -99,12 +100,18 @@ const AuthenticatedCoursesIdRoute = AuthenticatedCoursesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedCoursesRoute,
 } as any)
+const AuthenticatedAdminTeacherApplicationsRoute =
+  AuthenticatedAdminTeacherApplicationsRouteImport.update({
+    id: '/teacher-applications',
+    path: '/teacher-applications',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
   '/courses': typeof AuthenticatedCoursesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/teacher': typeof AuthenticatedTeacherRoute
   '/profile/$id': typeof ProfileIdRoute
+  '/admin/teacher-applications': typeof AuthenticatedAdminTeacherApplicationsRoute
   '/courses/$id': typeof AuthenticatedCoursesIdRoute
   '/lessons/$id': typeof AuthenticatedLessonsIdRoute
   '/tests/$id': typeof AuthenticatedTestsIdRoute
@@ -120,7 +128,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
   '/courses': typeof AuthenticatedCoursesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -128,6 +136,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/teacher': typeof AuthenticatedTeacherRoute
   '/profile/$id': typeof ProfileIdRoute
+  '/admin/teacher-applications': typeof AuthenticatedAdminTeacherApplicationsRoute
   '/courses/$id': typeof AuthenticatedCoursesIdRoute
   '/lessons/$id': typeof AuthenticatedLessonsIdRoute
   '/tests/$id': typeof AuthenticatedTestsIdRoute
@@ -138,7 +147,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/leaderboard': typeof LeaderboardRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/courses': typeof AuthenticatedCoursesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -146,6 +155,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/teacher': typeof AuthenticatedTeacherRoute
   '/profile/$id': typeof ProfileIdRoute
+  '/_authenticated/admin/teacher-applications': typeof AuthenticatedAdminTeacherApplicationsRoute
   '/_authenticated/courses/$id': typeof AuthenticatedCoursesIdRoute
   '/_authenticated/lessons/$id': typeof AuthenticatedLessonsIdRoute
   '/_authenticated/tests/$id': typeof AuthenticatedTestsIdRoute
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/teacher'
     | '/profile/$id'
+    | '/admin/teacher-applications'
     | '/courses/$id'
     | '/lessons/$id'
     | '/tests/$id'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/teacher'
     | '/profile/$id'
+    | '/admin/teacher-applications'
     | '/courses/$id'
     | '/lessons/$id'
     | '/tests/$id'
@@ -197,6 +209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/teacher'
     | '/profile/$id'
+    | '/_authenticated/admin/teacher-applications'
     | '/_authenticated/courses/$id'
     | '/_authenticated/lessons/$id'
     | '/_authenticated/tests/$id'
@@ -317,8 +330,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCoursesIdRouteImport
       parentRoute: typeof AuthenticatedCoursesRoute
     }
+    '/_authenticated/admin/teacher-applications': {
+      id: '/_authenticated/admin/teacher-applications'
+      path: '/teacher-applications'
+      fullPath: '/admin/teacher-applications'
+      preLoaderRoute: typeof AuthenticatedAdminTeacherApplicationsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
+
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminTeacherApplicationsRoute: typeof AuthenticatedAdminTeacherApplicationsRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminTeacherApplicationsRoute:
+    AuthenticatedAdminTeacherApplicationsRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedCoursesRouteChildren {
   AuthenticatedCoursesIdRoute: typeof AuthenticatedCoursesIdRoute
@@ -332,7 +364,7 @@ const AuthenticatedCoursesRouteWithChildren =
   AuthenticatedCoursesRoute._addFileChildren(AuthenticatedCoursesRouteChildren)
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedCoursesRoute: typeof AuthenticatedCoursesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -344,7 +376,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedCoursesRoute: AuthenticatedCoursesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,

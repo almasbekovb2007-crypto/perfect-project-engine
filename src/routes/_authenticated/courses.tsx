@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/courses")({
 
 function CoursesPage() {
   const [q, setQ] = useState("");
+  const navigate = useNavigate();
 
   const { data: subjects } = useQuery({
     queryKey: ["subjects"],
@@ -30,8 +31,7 @@ function CoursesPage() {
     queryFn: async () =>
       (await supabase
         .from("courses")
-        .select("id, title, description, cover_url, subject_id, subjects(name, icon)")
-        .eq("is_published", true)
+        .select("id, title, description, cover_url, subject_id, is_published, subjects(name, icon)")
         .order("created_at", { ascending: false })).data ?? [],
   });
 
@@ -76,7 +76,12 @@ function CoursesPage() {
           </Card>
         )}
         {filtered.map((c) => (
-          <Link key={c.id} to="/courses/$id" params={{ id: c.id }}>
+          <button
+            key={c.id}
+            type="button"
+            className="w-full text-left"
+            onClick={() => navigate({ to: "/courses/$id", params: { id: c.id } })}
+          >
             <Card className="h-full transition-shadow hover:shadow-soft">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -88,9 +93,11 @@ function CoursesPage() {
                 <CardDescription className="line-clamp-3">{c.description}</CardDescription>
               </CardHeader>
             </Card>
-          </Link>
+          </button>
         ))}
       </section>
+
+      <Outlet />
     </div>
   );
 }

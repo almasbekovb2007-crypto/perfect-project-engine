@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 function AdminPage() {
   const { roles } = useAuth();
   const qc = useQueryClient();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"student" | "teacher" | "admin">("teacher");
 
@@ -32,6 +35,10 @@ function AdminPage() {
 
   if (!roles.includes("admin")) {
     return <Card><CardContent className="py-12 text-center text-muted-foreground">Доступ только для администраторов.</CardContent></Card>;
+  }
+
+  if (location.pathname.startsWith("/admin/teacher-applications")) {
+    return <Outlet />;
   }
 
   const assignRole = async (userId: string) => {

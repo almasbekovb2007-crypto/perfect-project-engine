@@ -58,6 +58,7 @@ export const sendAssistantMessage = createServerFn({ method: "POST" })
     const apiKey = process.env.AI_API_KEY;
     const baseUrl = process.env.AI_BASE_URL || "https://api.openai.com/v1";
     const model = process.env.AI_MODEL || "gpt-4o-mini";
+    const isGemini = baseUrl.includes("generativelanguage.googleapis.com");
 
     let assistantReply: string;
 
@@ -66,24 +67,41 @@ export const sendAssistantMessage = createServerFn({ method: "POST" })
         "⚠️ ИИ-помощник пока не настроен.\n\nДобавьте переменную окружения `AI_API_KEY` (и при необходимости `AI_BASE_URL`, `AI_MODEL`) в настройках бэкенда, чтобы активировать ответы.";
     } else {
       try {
-        const res = await fetch(`${baseUrl}/chat/completions`, {
+        const endpoint = isGemini
+          ? `${baseUrl}/models/${model}:generateContent?key=${apiKey}`
+          : `${baseUrl}/chat/completions`;
+
+        const payload = isGemini
+          ? {
+              contents: [{ role: "user", parts: [{ text: messages.map((m) => `${m.role}: ${m.content}`).join("\n\n") }] }],
+            }
+          : {
+              model,
+              messages,
+              temperature: 0.4,
+            };
+
+        const res = await fetch(endpoint, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            temperature: 0.4,
-          }),
+          headers: isGemini
+            ? { "Content-Type": "application/json" }
+            : {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
+              },
+          body: JSON.stringify(payload),
         });
         if (!res.ok) {
           const text = await res.text();
           throw new Error(`AI ${res.status}: ${text.slice(0, 200)}`);
         }
-        const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-        assistantReply = json.choices?.[0]?.message?.content?.trim() || "Извините, не удалось получить ответ.";
+        const json = (await res.json()) as {
+          choices?: { message?: { content?: string } }[];
+          candidates?: { content?: { parts?: { text?: string }[] } }[];
+        };
+        assistantReply = isGemini
+          ? json.candidates?.[0]?.content?.parts?.map((p) => p.text).join("")?.trim() || "Извините, не удалось получить ответ."
+          : json.choices?.[0]?.message?.content?.trim() || "Извините, не удалось получить ответ.";
       } catch (e) {
         assistantReply = `Ошибка ИИ-сервиса: ${e instanceof Error ? e.message : "unknown"}`;
       }
